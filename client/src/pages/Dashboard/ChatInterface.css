@@ -1,0 +1,87 @@
+
+.chat-interface {
+  width: 90%; /* Adjust this value as needed */
+  height: 90%; /* Adjust this value as needed */
+  /* other styles... */
+}
+
+.chat-interface input[type="text"] {
+    padding: 20px 10px;
+    border: 1px solid #ccc;
+    transition: border 0.3s ease;
+    width: 80%; /* Increase the width as per your requirement */
+    height: 40px; /* adjust this value as needed */
+
+
+
+  }
+  
+
+  .chat-interface ul {
+    min-height: calc(70vh - 60px); /* Adjust as needed */
+    min-height: 80%; /* Adjust as needed */
+    /* existing styles... */
+  }
+
+  .chat-interface input[type="submit"] {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+  
+  .chat-interface input[type="submit"]:hover {
+    background-color: #45a049; /* Darker green on hover */
+  }
+  
+  .chat-interface input[type="submit"]:active {
+    background-color: #388e3c; /* Even darker green on click */
+  }
+
+  .timestamp {
+    color: #888; /* Light gray color */
+    opacity: 0.6; /* 60% opacity */
+    font-size: 0.8em; /* Smaller font size */
+    margin-left: 10px; /* Add left margin */
+  }
+
+  .chat-title {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    color: #333;
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+
+  .chat-title-bar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 10px;
+  }
+  
+ 
+  .chat-interface form {
+    position: sticky;
+    bottom: 0;
+    /* existing styles... */
+  }
+
+  .chat-messages {
+    height: calc(100% - 50px); /* Adjust as needed */
+    overflow-y: auto;
+  }
+  

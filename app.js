@@ -13,12 +13,12 @@ const algorithm = 'aes-256-cbc';
 const { check, validationResult } = require('express-validator');
 
 // Set the Azure and AI Search values from environment variables
-const openaiendpoint = process.env["AZURE_OPENAI_ENDPOINT"];
-const azureApiKey = process.env["AZURE_OPENAI_API_KEY"];
-const deploymentId = process.env["AZURE_OPENAI_DEPLOYMENT_ID"];
-const searchEndpoint = process.env["AZURE_AI_SEARCH_ENDPOINT"];
-const searchKey = process.env["AZURE_AI_SEARCH_API_KEY"];
-const searchIndex = process.env["AZURE_AI_SEARCH_INDEX"];
+const openaiendpoint = process.env.AZURE_OAI_ENDPOINT;
+const azureApiKey = process.env.AZURE_OAI_KEY;
+const deploymentId = process.env.AZURE_OAI_DEPLOYMENT_NAME;
+const searchEndpoint = process.env.AZURE_SEARCH_ENDPOINT;
+const searchKey = process.env.AZURE_SEARCH_KEY;
+const searchIndex = process.env.AZURE_SEARCH_INDEX;
 
 const aiClient = new OpenAIClient(openaiendpoint, new AzureKeyCredential(azureApiKey));
 
@@ -217,9 +217,29 @@ app.post('/logout', (req, res) => {
     });
 });
 
-app.get('/ai_call',async (req, res) => {
+app.post('/ai_call',async (req, res) => {
 
-    const { questionText, programArray } = req.body;
+    let { id, questionText } = req.body;
+
+    id = id ? id : req.session.id;
+    console.log(id + "id");
+    
+    console.log("Id in the session : " + req.session.id);
+
+    const { resource } = await container.item(id).read();
+
+    console.log(resource);
+    const decryptedCards = resource.cards.map(card => {
+        if (card.number) {
+            const decipher = crypto.createDecipheriv(algorithm, key1, iv);
+            let decrypted = decipher.update(card.number.toString(), 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            return { ...card, number: decrypted };
+        }
+        return card;
+    });
+    
+    const cardStrings = decryptedCards.map((card, i) => `card ${card.number} with program "${card.reward_value} of ${card.institution}"`);
 
     const messages = [
         {
@@ -228,7 +248,7 @@ app.get('/ai_call',async (req, res) => {
         },
         {
             role: "user",
-            content: questionText + ` I have the following credit cards available ${[...programArray]}`
+            content: questionText + ` I have the following credit cards available ${[...cardStrings]}`
         },
     ];
 
@@ -258,13 +278,13 @@ app.get('/ai_call',async (req, res) => {
       }
     }
     console.log(response);
-    res.json(response);
-
+    if(response){
+        res.json({response: response});
+    }
 });
 
 
 // Start the server
 const port = process.env.PORT || 5000;
 const server = app.listen(port, () => console.log(`Server running on port ${port}`));
-
 module.exports = { app, server };

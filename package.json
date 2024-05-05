@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha *.test.js"
+    "test": "mocha *.test.js",
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,5 @@
     "chai": "^5.1.0",
     "mocha": "^10.4.0",
     "supertest": "^7.0.0"
-  },
-  "proxy": "http://localhost:5000"
+  }
 }

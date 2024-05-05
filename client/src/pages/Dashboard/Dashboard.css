@@ -1,0 +1,274 @@
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.table th, .table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.table th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.table td {
+    position: relative; /* Add this to make the cell a positioning context for the button */
+}
+
+.button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #45a049; /* Darker green */
+}
+
+.table tr:hover {
+    background-color: #ddd; /* Light gray */
+}
+
+
+.logout {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .card-row .remove-button {
+    display: none;
+  }
+  
+  .card-row:hover .remove-button {
+    display: inline-block;
+  }
+
+  .remove-button {
+    position: absolute; /* Make the button positioned absolutely */
+    top: 50%; /* Center it vertically */
+    right: 200%; /* Place it near the right edge of the cell */
+    transform: translateY(-50%); /* This is to perfectly center it vertically, as top: 50% alone won't do it */
+ 
+    background-color: #f44336; /* Red */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.remove-button:hover {
+    background-color: #d32f2f; /* Darker red */
+}
+
+
+.chat-button {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    /* other styles... */
+  }
+
+  @keyframes slide-up {
+    0% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  
+  .chat-popup {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 60%; /* Increase the width */
+    height: 80%; /* Increase the height */
+    border: 1px solid #ccc;
+    background-color: #fff;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: scroll; /* make it scrollable */
+    resize: both; /* This allows the element to be resizable both horizontally and vertically */
+    overflow: auto; /* This is necessary for resize to work */
+    animation: slide-up 0.5s ease-out;
+
+  }
+
+  
+.chat-popup::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  .chat-popup::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+  
+  .chat-popup::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .message {
+    list-style: none;
+    transition: all 0.3s ease;
+    opacity: 0;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-width: 80%;
+    clear: both;
+    line-height: 1.5;
+  }
+  
+  .message.show {
+    opacity: 1;
+  }
+
+  .user.message {
+    background-color: #e6f7ff;
+    float: right;
+    margin-right: 20px;
+  }
+  
+  .ai.message, .system.message {
+    background-color: #fff2e6;
+    float: left;
+    margin-left: 20px;
+  }
+
+
+  @media (max-width: 600px) {
+    .chat-interface {
+      width: 100%;
+    }
+  }
+
+  .user {
+    text-align: right;
+    background-color: #e6f7ff; /* Light blue background for user messages */
+    border-radius: 18px; /* Increased border-radius */
+    padding: 10px; /* Padding for user messages */
+    margin: 10px 0; /* Added margin */
+
+  }
+  
+  .ai, .system {
+    text-align: left;
+    background-color: #fff2e6; /* Light orange background for AI messages */
+    border-radius: 18px; /* Increased border-radius */
+    padding: 10px; /* Padding for AI messages */
+    margin: 10px 0; /* Added margin */
+  }
+
+
+
+.open-chat-button {
+    /* existing styles... */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.open-chat-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: scale(1.1); /* Slightly enlarge the button on hover */
+}
+
+.open-chat-button, .close-chat-button {
+    /* existing styles... */
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.close-chat-button {
+    /* existing styles... */
+    align-self: flex-end;
+    background-color: #e25151; /* Green */
+    border: none;
+    color: white;
+    padding: 5px 10px; /* Adjust padding to make the button smaller */
+    bottom: 0; /* Align the button to the bottom */
+    right: 0; /* Align the button to the right */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.close-chat-button {
+    /* existing styles... */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.close-chat-button:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+    transform: scale(1.1); /* Slightly enlarge the button on hover */
+}
+
+
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #333;
+    color: #fff;
+  }
+  
+  .navbar h1 {
+    margin: 0;
+  }
+  
+  .navbar .button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .navbar .button:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: scale(1.1); /* Slightly enlarge the button on hover */
+  }
