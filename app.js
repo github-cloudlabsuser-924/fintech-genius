@@ -1,4 +1,5 @@
 // Import necessary modules
+require('dotenv').config();
 const express = require('express');
 const cosmos = require('@azure/cosmos');
 const session = require('express-session');
@@ -7,18 +8,17 @@ const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 //crypto module
 const crypto = require('crypto');
 const algorithm = 'aes-256-cbc';
-const key1 = Buffer.from('', 'utf8');
-const iv = Buffer.from('', 'utf8');
+
 
 const { check, validationResult } = require('express-validator');
 
 // Set the Azure and AI Search values from environment variables
-const openaiendpoint = process.env["AZURE_OPENAI_ENDPOINT"];
-const azureApiKey = process.env["AZURE_OPENAI_API_KEY"];
-const deploymentId = process.env["AZURE_OPENAI_DEPLOYMENT_ID"];
-const searchEndpoint = process.env["AZURE_AI_SEARCH_ENDPOINT"];
-const searchKey = process.env["AZURE_AI_SEARCH_API_KEY"];
-const searchIndex = process.env["AZURE_AI_SEARCH_INDEX"];
+const openaiendpoint = process.env.AZURE_OAI_ENDPOINT;
+const azureApiKey = process.env.AZURE_OAI_KEY;
+const deploymentId = process.env.AZURE_OAI_DEPLOYMENT_NAME;
+const searchEndpoint = process.env.AZURE_SEARCH_ENDPOINT;
+const searchKey = process.env.AZURE_SEARCH_KEY;
+const searchIndex = process.env.AZURE_SEARCH_INDEX;
 
 const aiClient = new OpenAIClient(openaiendpoint, new AzureKeyCredential(azureApiKey));
 
@@ -27,8 +27,10 @@ const app = express();
 app.use(express.json());
 
 // Cosmos DB connection
-const cosmodbendpoint = "https://fintech-credit-card.documents.azure.com:443/";
-const key = "";
+
+const cosmodbendpoint = process.env.COSMOS_ENDPOINT;
+const key = process.env.COSMOS_KEY;
+
 const { CosmosClient } = cosmos;
 const client = new CosmosClient({ endpoint: cosmodbendpoint, key });
 const database = client.database('credit_cards');
@@ -37,9 +39,12 @@ const container = database.container('credit_card_users');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+const key1 = Buffer.from(process.env.CRYPTO_KEY, 'utf8');
+const iv = Buffer.from(process.env.CRYPTO_IV, 'utf8');
+
 
 app.use(session({
-    secret: 'weerer23sfg34fregsgswertgergerg',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: { secure: true } // Note: secure: true option requires an HTTPS connection
@@ -49,6 +54,8 @@ app.use(session({
 app.post('/login', async (req, res) => {
 
     const { username, password } = req.body;
+    console.log(username);
+    console.log(req.body);
     const { resources } = await container.items
         .query({ query: "SELECT * FROM c WHERE c.login.username = @username", parameters: [{ name: "@username", value: username }] })
         .fetchAll();
@@ -57,7 +64,7 @@ app.post('/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.login.password);
         if (match) {
             req.session.user = user;
-            res.json({ success: true, message: 'Logged in successfully' });
+            res.json({ success: true, message: 'Logged in successfully', id:req.session.user.id });
         } else {
             res.json({ success: false, message: 'Invalid username or password' });
         }
@@ -111,19 +118,34 @@ app.post('/create_account',
 
 // Add credit card endpoint
 app.post('/add_credit_card', async (req, res) => {
-    const { id, card } = req.body;
+    let { id, card } = req.body;
+    id = id ? id : req.session.id;
     const { resource } = await container.item(id).read();
     const newCard = {};
     console.log(crypto.randomBytes(32).toString)
     console.log(crypto.randomBytes(16))
     if (!card.number) {
         res.status(400).send({ error: 'Card number is required' });
-    } else {
+
+      } else {
+            
+        // Encrypt the card number
+
+
         const cipher = crypto.createCipheriv(algorithm, key1, iv);
         let encrypted = cipher.update(card.number.toString(), 'utf8', 'hex');
         encrypted += cipher.final('hex');
         newCard.number = encrypted;
     }
+    
+    // Check if a card with the same number already exists
+
+    const cardExists = resource.cards.some(existingCard => existingCard.number === newCard.number);
+    if (cardExists) {
+        return res.status(400).json({ success: false, message: 'Card with this number already exists' });
+    }
+
+
     if (card.expiry_month) newCard.expiry_month = card.expiry_month;
     if (card.expiry_year) newCard.expiry_year = card.expiry_year;
     if (card.institution) newCard.institution = card.institution;
@@ -131,14 +153,18 @@ app.post('/add_credit_card', async (req, res) => {
     if (card.reward_value) newCard.reward_value = card.reward_value;
     if (card.cardholderName) newCard.cardholderName = card.cardholderName;
 
+    if (card.meta_data) newCard.meta_data = card.meta_data;
+
     resource.cards.push(newCard);
     await container.item(id).replace(resource);
     res.json({ success: true, message: 'Card added successfully' });
 });
 
+
+
 // Get credit cards endpoint
 app.get('/get_credit_cards/:id', async (req, res) => {
-    const { id } = req.params;
+    let id = req.params.id ? req.params.id : req.session.id;
     const { resource } = await container.item(id).read();
     console.log(resource);
     const decryptedCards = resource.cards.map(card => {
@@ -156,6 +182,30 @@ app.get('/get_credit_cards/:id', async (req, res) => {
     res.json(decryptedCards);
 });
 
+// Remove credit card endpoint
+app.delete('/remove_credit_card/:id/:cardNumber', async (req, res) => {
+    let id = req.params.id ? req.params.id : req.session.id;
+    let cardNumber = req.params.cardNumber;
+    const { resource } = await container.item(id).read();
+
+    // Encrypt the card number to match the one stored
+    const cipher = crypto.createCipheriv(algorithm, key1, iv);
+    let encrypted = cipher.update(cardNumber.toString(), 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+
+    // Find the card with the given number
+    const cardIndex = resource.cards.findIndex(card => card.number === encrypted);
+    if (cardIndex === -1) {
+        return res.status(400).json({ success: false, message: 'Card with this number does not exist' });
+    }
+
+    // Remove the card
+    resource.cards.splice(cardIndex, 1);
+    await container.item(id).replace(resource);
+    res.json({ success: true, message: 'Card removed successfully' });
+});
+
+
 // Logout endpoint
 app.post('/logout', (req, res) => {
     req.session.destroy(err => {
@@ -167,9 +217,29 @@ app.post('/logout', (req, res) => {
     });
 });
 
-app.get('/ai_call',async (req, res) => {
+app.post('/ai_call',async (req, res) => {
 
-    const { questionText, programArray } = req.body;
+    let { id, questionText } = req.body;
+
+    id = id ? id : req.session.id;
+    console.log(id + "id");
+    
+    console.log("Id in the session : " + req.session.id);
+
+    const { resource } = await container.item(id).read();
+
+    console.log(resource);
+    const decryptedCards = resource.cards.map(card => {
+        if (card.number) {
+            const decipher = crypto.createDecipheriv(algorithm, key1, iv);
+            let decrypted = decipher.update(card.number.toString(), 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            return { ...card, number: decrypted };
+        }
+        return card;
+    });
+    
+    const cardStrings = decryptedCards.map((card, i) => `card ${card.number} with program "${card.reward_value} of ${card.institution}"`);
 
     const messages = [
         {
@@ -178,7 +248,7 @@ app.get('/ai_call',async (req, res) => {
         },
         {
             role: "user",
-            content: questionText + ` I have the following credit cards available ${[...programArray]}`
+            content: questionText + ` I have the following credit cards available ${[...cardStrings]}`
         },
     ];
 
@@ -208,13 +278,13 @@ app.get('/ai_call',async (req, res) => {
       }
     }
     console.log(response);
-    res.json(response);
-
+    if(response){
+        res.json({response: response});
+    }
 });
 
 
 // Start the server
 const port = process.env.PORT || 5000;
 const server = app.listen(port, () => console.log(`Server running on port ${port}`));
-
 module.exports = { app, server };
